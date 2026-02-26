@@ -1,4 +1,45 @@
-app.post("/send", (req, res) => {
-    console.log("Received data:", req.body);
-    res.json({ success: true });
+const express = require("express");
+const cors = require("cors");
+const { Resend } = require("resend");
+
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+app.get("/", (req, res) => {
+    res.send("Backend is running 🚀");
+});
+
+app.post("/send", async (req, res) => {
+    const { name, email, phone, message } = req.body;
+
+    try {
+        await resend.emails.send({
+            from: "onboarding@resend.dev",
+            to: "cooldivijdhingra@gmail.com",
+            subject: "New Celebration Booking 🎉",
+            html: `
+                <h2>New Booking Request</h2>
+                <p><strong>Name:</strong> ${name}</p>
+                <p><strong>Email:</strong> ${email}</p>
+                <p><strong>Phone:</strong> ${phone}</p>
+                <p><strong>Message:</strong> ${message}</p>
+            `
+        });
+
+        res.json({ success: true });
+
+    } catch (error) {
+        console.error("Email error:", error);
+        res.status(500).json({ success: false });
+    }
+});
+
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
 });
